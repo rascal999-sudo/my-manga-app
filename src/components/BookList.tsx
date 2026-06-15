@@ -8,6 +8,7 @@ interface BookListProps {
 }
 
 export default function BookList({ books, onBookSelect }: BookListProps) {
+
   if (!books || books.length === 0) {
     return (
       <div className="text-center py-10 text-muted-foreground">

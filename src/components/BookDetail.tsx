@@ -1,4 +1,5 @@
 import { KoboBook } from '@/types/rakuten';
+import { useBookshelf } from '@/hooks/useBookshelf'; // ★追加
 
 interface BookDetailProps {
   book: KoboBook;
@@ -19,7 +20,14 @@ export default function BookDetail({
   hasPrev,
   hasNext,
 }: BookDetailProps) {
+
+// ★追加：本棚フックを呼び出す
+  const { addBook, removeBook, isBookInShelf, isLoaded } = useBookshelf();
+
   if (!book) return null;
+
+  // ★追加：この本が既に本棚にあるかチェック
+  const inShelf = isLoaded ? isBookInShelf(book.itemNumber) : false;
 
   // ★ 修正ポイント: 星評価を安全にレンダリングする関数
   const renderStars = (reviewAverage: any) => {
@@ -107,17 +115,32 @@ export default function BookDetail({
             </div>
           )}
 
-          {/* 購入・詳細ボタン */}
-          <div className="pt-2">
+
+{/* あらすじの下あたりに「本棚ボタン」を追加 */}
+          <div className="pt-2 flex flex-col md:flex-row gap-3">
             <a
               href={book.itemUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block w-full text-center md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-2.5 px-6 rounded-lg shadow-sm transition-colors"
+              className="inline-block text-center md:flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-2.5 px-6 rounded-lg shadow-sm transition-colors"
             >
               楽天Koboで詳細を見る
             </a>
+            
+            {/* ★追加：本棚追加/削除ボタン */}
+            <button
+              onClick={() => inShelf ? removeBook(book.itemNumber) : addBook(book)}
+              className={`inline-block text-center md:flex-1 font-bold text-sm py-2.5 px-6 rounded-lg shadow-sm transition-colors border ${
+                inShelf 
+                  ? 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200' 
+                  : 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
+              }`}
+            >
+              {inShelf ? '本棚から外す' : '📚 本棚に追加'}
+            </button>
           </div>
+
+
         </div>
       </div>
     </div>
