@@ -7,6 +7,11 @@ import BookDetail from '@/components/BookDetail';
 import { KoboBook } from '@/types/rakuten';
 import { KoboSort } from '@/lib/api';
 
+// 💡 【修正点2の補足】: 
+// 以下のコードはpage.tsxの全文ですが、「カードが浮き出るCSS」は各カード（部品）に直接設定する必要があります。
+// 別ファイルである `BookList.tsx` のカードを囲んでいる要素(divなど)に、以下のクラスを追加してください。
+// 追加するクラス: "transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] cursor-pointer"
+
 export default function HomePage() {
   const [books, setBooks] = useState<KoboBook[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,6 +108,8 @@ export default function HomePage() {
   };
 
   const handleBackToTop = () => {
+    // 💡 修正点: スムーズに一番上へ戻る処理を追加
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setBooks([]);
     setHasSearched(false);
     setSelectedIdx(null);
@@ -113,17 +120,29 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-foreground flex flex-col">
+      {/* 💡 修正点3: 上部バーの左端に「トップに戻る」旨を記載しました。
+        flexbox を使って左側にテキスト、中央にタイトルを配置しています。
+      */}
       <header 
-        className="bg-red-600 text-white p-4 shadow-md text-center cursor-pointer select-none transition-colors hover:bg-red-700" 
+        className="sticky top-0 z-50 bg-red-600 text-white p-4 shadow-md flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-red-700" 
         onClick={handleBackToTop}
       >
-        <h1 className="text-xl font-bold tracking-wider">楽天Kobo 漫画検索アプリ</h1>
-        <p className="text-xs opacity-80 mt-1">いつでもお得に電子コミックを検索</p>
+        <div className="text-[10px] sm:text-xs font-bold opacity-80 animate-pulse w-24">
+          ◀ 押すとトップ
+        </div>
+        <div className="text-center flex-grow">
+          <h1 className="text-lg sm:text-xl font-bold tracking-wider">楽天Kobo 漫画検索</h1>
+          <p className="text-[10px] sm:text-xs opacity-80 mt-1">いつでもお得に電子コミックを検索</p>
+        </div>
+        <div className="w-24"></div> {/* 中央寄せのバランスをとるための空要素 */}
       </header>
 
       {selectedIdx === null && <SearchBar onSearch={handleSearch} isLoading={loading} />}
 
-      <main className="container mx-auto max-w-4xl flex-grow flex flex-col justify-start p-4 pb-12">
+      {/* 💡 修正点1: レスポンシブ対応な画面設計（余白の最適化） 
+        スマホでは px-2 で画面を広く使い、タブレット以上で md:px-6 と余白を広げます。
+      */}
+      <main className="w-full max-w-6xl mx-auto flex-grow flex flex-col justify-start px-2 py-4 md:px-6 md:py-8 pb-12">
         {error && (
           <div className="m-4 p-4 bg-destructive/10 text-destructive rounded-lg text-sm font-medium text-center">
             {error}

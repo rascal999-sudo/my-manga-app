@@ -22,7 +22,7 @@ export default function BookList({ books, onBookSelect }: BookListProps) {
         <Card 
           key={index} 
           onClick={() => onBookSelect(index)} // ★追加：カードクリックで詳細へ
-          className="flex flex-col h-full justify-between overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+          className="flex flex-col h-full justify-between overflow-hidden cursor-pointer transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] bg-white"
         >
           <CardHeader className="p-0">
             <div className="relative w-full aspect-[3/4] bg-muted flex items-center justify-center overflow-hidden">
