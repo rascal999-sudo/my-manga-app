@@ -8,7 +8,7 @@ import { ShelfBook, ReadStatus } from '@/types/shelf';
 import awardedData from '@/data/awardedBooks2025.json';
 
 const STORAGE_KEY = 'kobo_manga_bookshelf';
-const SYSTEM_DEFAULT_TAG = "2025年度 受賞作品";
+const SYSTEM_DEFAULT_TAG = "2025年度受賞作品";
 
 export function useBookshelf() {
   const [shelfBooks, setShelfBooks] = useState<ShelfBook[]>([]);

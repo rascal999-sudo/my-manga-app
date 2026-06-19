@@ -11,4 +11,5 @@ export interface ShelfBook extends KoboBook {
   userTags: string[];   // ユーザーが付与したタグ（フェーズ2で使用）
   userComment: string;  // メモや感想（フェーズ2で使用）
   addedAt: number;      // 本棚に追加した日時（ソート用）
+  memo?: string; // ← これが必要です！
 }

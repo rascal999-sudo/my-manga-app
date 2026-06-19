@@ -102,7 +102,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="cursor-pointer" onClick={() => setMode('SHELF')}>
             <h1 className="text-xl font-bold">📚 My Bookshelf</h1>
-            <p className="text-[10px] opacity-80">楽天Koboで電子書籍を検索できます</p>
+            <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～　楽天Koboで電子書籍を検索できます</p>
           </div>
           <Link href="/shelf" className="text-xs font-bold bg-white text-red-600 px-3 py-1 rounded-full hover:bg-slate-100">
             📚本棚設定
@@ -141,11 +141,23 @@ export default function HomePage() {
             {mode === 'SHELF' ? (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {shelfBooks.filter(b => b.userTags && b.userTags.includes(selectedTag)).map(book => (
-                  <div key={book.shelfId} onClick={() => setSelectedBook(book)} 
-                       className="bg-white p-3 rounded shadow transition-all hover:shadow-lg hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-500">
-                    <img src={book.mediumImageUrl} className="w-full rounded" alt={book.title} />
-                    <p className="text-xs mt-2 font-bold truncate">{book.title}</p>
-                  </div>
+<div 
+        key={book.shelfId} 
+        onClick={() => setSelectedBook(book)} 
+        className="bg-white p-3 rounded shadow transition-all hover:shadow-lg hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-500 relative"
+      >
+
+{/* 修正後のデザイン：帯（リボン）スタイル */}
+{book.userComment && (
+  <div className="absolute top-2 left-0 z-10 w-full overflow-hidden">
+    <div className="bg-red-600 text-white text-[12px] font-bold px-2 py-1 shadow-sm truncate">
+      {book.userComment}
+    </div>
+  </div>
+)}
+        <img src={book.mediumImageUrl} className="w-full rounded" alt={book.title} />
+        <p className="text-xs mt-2 font-bold truncate">{book.title}</p>
+      </div>
                 ))}
                 {shelfBooks.length === 0 && (
                   <p className="col-span-full text-center text-sm text-slate-400 py-10">本棚に本がありません。上のバーから検索して追加してください。</p>

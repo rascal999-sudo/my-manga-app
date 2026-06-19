@@ -99,7 +99,7 @@ const handleBuyClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
               <div className="flex flex-wrap gap-1 mb-2">
                 {shelfData.userTags.map((t: string) => <span key={t} className="text-[10px] bg-white px-2 py-0.5 rounded border">{t}</span>)}
               </div>
-              <p className="text-xs text-slate-600 italic line-clamp-3">{shelfData.userComment || "メモはまだありません"}</p>
+              <p className="text-xs text-slate-600 italic line-clamp-3">{shelfData.userComment || "コメントやタグを追加して本棚にならべましょう"}</p>
             </div>
           )}
         </div>
