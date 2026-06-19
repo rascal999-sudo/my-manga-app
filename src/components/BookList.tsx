@@ -1,64 +1,62 @@
-// src/components/BookList.tsx
+'use client';
+
 import { KoboBook } from '@/types/rakuten';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useBookshelf } from '@/hooks/useBookshelf';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface BookListProps {
   books: KoboBook[];
-  onBookSelect: (index: number) => void; // ★追加：選択されたインデックスを親に伝える
+  onBookSelect: (index: number) => void;
+  totalHits: number;
+  onBack: () => void;
+  onLoadMore: () => void;
+  hasMore: boolean;
 }
 
-export default function BookList({ books, onBookSelect }: BookListProps) {
+export default function BookList({ books, onBookSelect, totalHits, onBack, onLoadMore, hasMore }: BookListProps) {
+  const { isBookInShelf } = useBookshelf();
 
-  if (!books || books.length === 0) {
-    return (
-      <div className="text-center py-10 text-muted-foreground">
-        該当する漫画が見つかりませんでした。
+// 上下共通のバナーUI
+  const Banner = ({ position }: { position: 'top' | 'bottom' }) => (
+    <div className="bg-red-600 text-white p-3 rounded-lg shadow-md flex items-center justify-between text-xs font-bold">
+      <button onClick={onBack} className="underline">← 本棚に戻る</button>
+      
+      {/* 検索結果画面の上部バナー用の説明・リンクエリア */}
+      <div className="flex items-center gap-4">
+        <span>ヒット: {totalHits}件 / 表示: {books.length}件</span>
       </div>
-    );
-  }
+
+      <span className="opacity-80">本をクリックし詳細を表示</span>
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
-      {books.map((book, index) => (
-        <Card 
-          key={index} 
-          onClick={() => onBookSelect(index)} // ★追加：カードクリックで詳細へ
-          className="flex flex-col h-full justify-between overflow-hidden cursor-pointer transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-2xl hover:scale-[1.02] bg-white"
-        >
-          <CardHeader className="p-0">
-            <div className="relative w-full aspect-[3/4] bg-muted flex items-center justify-center overflow-hidden">
-              {book.mediumImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={book.mediumImageUrl} alt={book.title} className="object-cover w-full h-full" loading="lazy" />
-              ) : (
-                <span className="text-xs text-muted-foreground">No Image</span>
-              )}
-            </div>
-          </CardHeader>
-          
-          <CardContent className="p-3 flex-grow">
-            <CardTitle className="text-sm font-bold line-clamp-2 min-h-[2.5rem] mb-1">
-              {book.title}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground truncate">{book.author}</p>
-            <p className="text-xs font-semibold text-rose-600 mt-1">
-              {book.itemPrice > 0 ? `${book.itemPrice.toLocaleString()}円` : '無料'}
-            </p>
-          </CardContent>
+    <div className="space-y-4">
+      <Banner position="top" />
 
-          <CardFooter className="p-3 pt-0" onClick={(e) => e.stopPropagation()}>
-            {/* ★ e.stopPropagation() で詳細画面への遷移をバブリング防止 */}
-            <a
-              href={book.itemUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full text-center bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded transition-colors"
-            >
-              楽天Koboで見る
-            </a>
-          </CardFooter>
-        </Card>
-      ))}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {books.map((book, index) => (
+          <div 
+            key={index} 
+            onClick={() => onBookSelect(index)}
+            className="bg-white p-3 rounded shadow transition-all hover:shadow-lg hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-500 relative"
+          >
+            {/* 本棚マーク */}
+            {isBookInShelf(book.itemNumber) && (
+              <div className="absolute top-4 right-4 z-10 bg-yellow-400 text-white text-base font-bold px-2 py-1 rounded-full shadow-lg">📚</div>
+            )}
+
+            <img src={book.mediumImageUrl} alt={book.title} className="w-full rounded" />
+            <p className="text-xs mt-2 font-bold truncate">{book.title}</p>
+          </div>
+        ))}
+      </div>
+
+      {hasMore && (
+        <button onClick={onLoadMore} className="w-full py-3 bg-slate-200 text-slate-700 font-bold rounded hover:bg-slate-300">もっと見る</button>
+      )}
+      
+      <Banner position="bottom" />
     </div>
   );
 }
