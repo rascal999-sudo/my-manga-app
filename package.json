@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cap:build": "mv src/app/api src/app/_api_backup && APP_ENV=cap next build && mv src/app/_api_backup src/app/api && npx cap sync"
+    "cap:build": "mv src/app/api src/app/_api_backup && APP_ENV=cap next build && mv src/app/_api_backup src/app/api && rm -f www && ln -s out www && npx cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
