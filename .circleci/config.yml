@@ -10,6 +10,14 @@ jobs:
     steps:
       - checkout
 
+      # Node.jsをバージョン22（最新のLTS）に更新するステップを追加
+      - run:
+          name: Install Node.js 22
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+            node -v # バージョンが正しく更新されたかログで確認
+            
       # Node.js依存関係のインストール
       - run:
           name: Install Dependencies
