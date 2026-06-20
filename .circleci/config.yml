@@ -6,34 +6,34 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: large
-      tag: 2024.04.1 # エラーの原因となっていた必須のタグを追加
+      tag: 2024.04.1
     steps:
       - checkout
 
-      # Node.jsをバージョン22（最新のLTS）に更新するステップを追加
+      # Node.jsをバージョン22（最新のLTS）に更新する
       - run:
           name: Install Node.js 22
           command: |
             curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
             sudo apt-get install -y nodejs
-            node -v # バージョンが正しく更新されたかログで確認
-            
+            node -v
+
       # Node.js依存関係のインストール
       - run:
           name: Install Dependencies
           command: npm install
 
-      # Capacitorのビルド（Android用のWeb資産を生成）
+      # Capacitorのビルド
       - run:
           name: Build Capacitor
           command: npm run cap:build
 
-      # Androidのネイティブコードをビルド（apkを生成）
+      # Androidのネイティブコードをビルド
       - run:
           name: Build Android App
           command: ./gradlew assembleDebug
 
-      # 生成されたapkファイルをCircleCI上に保存（ダウンロード可能にする）
+      # 生成されたapkファイルを保存
       - store_artifacts:
           path: app/build/outputs/apk/debug/
           destination: apks
