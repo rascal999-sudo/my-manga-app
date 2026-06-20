@@ -1,0 +1,28 @@
+version: 2.1
+orbs:
+  android: circleci/android@2.4.0 # Android用の便利なパッケージを利用
+jobs:
+  build:
+    executor:
+      name: android/android-machine
+      resource-class: large
+    steps:
+      - checkout # GitHubからコードを持ってくる
+      
+      # 必要に応じてNode.jsやCapacitorのコマンドを実行する場合
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - run:
+          name: Build Capacitor
+          command: npm run cap:build
+
+      # Androidのビルド（apkやaabの生成）
+      - run:
+          name: Build Android App
+          command: ./gradlew assembleDebug # apkの場合 (aabの場合は bundleDebug)
+          
+      # 生成された成果物（apk/aab）をCircleCI上に保存してダウンロードできるようにする
+      - store_artifacts:
+          path: app/build/outputs/apk/debug/
+          destination: apks
