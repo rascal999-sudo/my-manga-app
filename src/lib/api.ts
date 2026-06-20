@@ -15,12 +15,18 @@ export interface RakutenKoboResponse {
 export async function fetchKoboBooks(
   keyword: string,
   sort: KoboSort = 'standard',
-  page: number = 1 // 💡 何ページ目を読み込むかを指定できるように変更（初期値は1）
+  page: number = 1
 ): Promise<RakutenKoboResponse> {
+  // 💡 重要: Capacitorのビルド（静的エクスポート）時は、環境変数がなくてもエラーにせず空データを返す
+  if (process.env.APP_ENV === 'cap') {
+    return { Items: [], count: 0, page: 1, first: 1, last: 0, hits: 0, pageCount: 0 };
+  }
+
   const APP_ID = process.env.RAKUTEN_APPLICATION_ID;
   const ACCESS_KEY = process.env.RAKUTEN_ACCESS_KEY;
   const AFFILIATE_ID = process.env.RAKUTEN_AFFILIATE_ID;
 
+  // 💡 本番（Vercel）での実行時のみ、キーの存在チェックを行う
   if (!APP_ID || !ACCESS_KEY) {
     throw new Error('API IDまたはAccess Keyが設定されていません');
   }
@@ -39,7 +45,7 @@ export async function fetchKoboBooks(
     koboGenreId: '101', // コミック・漫画限定
     format: 'json',
     hits: '30',
-    page: page.toString(), // 💡 ページ番号を楽天に伝える
+    page: page.toString(),
   });
 
   if (AFFILIATE_ID) {

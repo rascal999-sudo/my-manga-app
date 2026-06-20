@@ -1,4 +1,5 @@
 export interface KoboBook {
+  itemNumber: string;
   title: string;
   author: string;
   itemPrice: number;

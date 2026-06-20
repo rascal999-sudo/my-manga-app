@@ -11,6 +11,18 @@ import { KoboSort } from '@/lib/api';
 
 const STORAGE_KEY_LAST_TAG = "my_bookshelf_last_tag";
 
+// 💡 スマホアプリ（Capacitor）かWeb（Vercel）かを判定して、APIのベースURLを返す関数
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    // 完全にスタンドアロンのスマホアプリ（capacitor://）やローカルテスト時
+    if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
+      // ⚠️ ここをご自身のVercel本番環境のドメインに書き換えてください
+      return 'https://your-manga-app.vercel.app'; 
+    }
+  }
+  return ''; // VercelのWeb上（自身）で動いている時は相対パスにする
+};
+
 export default function HomePage() {
   const { shelfBooks, isLoaded } = useBookshelf();
   const [mode, setMode] = useState<'SHELF' | 'SEARCH'>('SHELF');
@@ -22,9 +34,25 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentKeyword, setCurrentKeyword] = useState('');
   const [currentSort, setCurrentSort] = useState<KoboSort>('standard');
-  const [selectedBook, setSelectedBook] = useState<any | null>(null);
+  
+  // 💡 型を any から KoboBook | null に変更して安全性を強化
+  const [selectedBook, setSelectedBook] = useState<KoboBook | null>(null);
 
-  // 初期の選択タグは空文字で設定（マウント後に localStorage または本棚の先頭タグから復元）
+const getApiBaseUrl = () => {
+  // 💡 開発モード(npm run dev)の時は、Codespaces上であっても相対パスで自分自身のAPIを叩く
+  if (process.env.NODE_ENV === 'development') {
+    return '';
+  }
+
+  if (typeof window !== 'undefined') {
+    if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
+      return 'https://your-manga-app.vercel.app'; 
+    }
+  }
+  return '';
+};
+
+  // 初期の選択タグは空文字で設定
   const [selectedTag, setSelectedTag] = useState<string>('');
 
   // インデックス管理
@@ -37,7 +65,7 @@ export default function HomePage() {
     }
   };
 
-  // 全タグの集計（本棚にあるタグのみを純粋にカウント）
+  // 全タグの集計
   const tagStats = useMemo(() => {
     const counts: Record<string, number> = {};
     shelfBooks.forEach(b => {
@@ -55,18 +83,17 @@ export default function HomePage() {
     return Object.keys(tagStats).sort((a, b) => tagStats[b] - tagStats[a]);
   }, [tagStats]);
 
-  // 起動時（マウント時）に一度だけ localStorage または本棚のデータから初期タグを決定
+  // 起動時（マウント時）に一度だけ初期タグを決定
   useEffect(() => {
     const savedTag = localStorage.getItem(STORAGE_KEY_LAST_TAG);
     if (savedTag && allTags.includes(savedTag)) {
       setSelectedTag(savedTag);
     } else if (allTags.length > 0) {
-      // 履歴がない、または履歴のタグが既に存在しない場合は、一番本の多いタグを初期表示
       setSelectedTag(allTags[0]);
     }
   }, [allTags]);
 
-  // タグが変更されたら localStorage に保存する処理
+  // タグが変更されたら保存
   const handleTagChange = (tag: string) => {
     setSelectedTag(tag);
     localStorage.setItem(STORAGE_KEY_LAST_TAG, tag);
@@ -82,7 +109,10 @@ export default function HomePage() {
     setMode('SEARCH');
     try {
       const params = new URLSearchParams({ keyword, sort, page: page.toString() });
-      const res = await fetch(`/api/search?${params.toString()}`);
+      
+      // 💡 スマホ時はVercelのURL、Web時は相対パスに自動で切り替える
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/api/search?${params.toString()}`);
       const json = await res.json();
       
       const newBooks = json?.Items?.map((item: any) => item.Item) || [];
@@ -90,7 +120,11 @@ export default function HomePage() {
       setTotalHits(json.count || 0);
       setHasMore(json.page < json.pageCount);
       setCurrentPage(page);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } catch (e) { 
+      console.error(e); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   if (!isLoaded) return <div className="p-10 text-center">読み込み中...</div>;
@@ -102,7 +136,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="cursor-pointer" onClick={() => setMode('SHELF')}>
             <h1 className="text-xl font-bold">📚 My Bookshelf</h1>
-            <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～　楽天Koboで電子書籍を検索できます</p>
+            <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～ 楽天Koboで電子書籍を検索できます</p>
           </div>
           <Link href="/shelf" className="text-xs font-bold bg-white text-red-600 px-3 py-1 rounded-full hover:bg-slate-100">
             📚本棚設定
@@ -114,7 +148,7 @@ export default function HomePage() {
       <main className="flex-grow max-w-6xl mx-auto w-full p-4">
         {selectedBook ? (
           <BookDetail 
-            book={selectedBook}
+            book={selectedBook as any} // コンポーネント側の型定義に合わせて必要ならキャスト
             onBackToList={() => setSelectedBook(null)}
             onPrev={() => handleMovePage('prev')}
             onNext={() => handleMovePage('next')}
@@ -141,23 +175,21 @@ export default function HomePage() {
             {mode === 'SHELF' ? (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {shelfBooks.filter(b => b.userTags && b.userTags.includes(selectedTag)).map(book => (
-<div 
-        key={book.shelfId} 
-        onClick={() => setSelectedBook(book)} 
-        className="bg-white p-3 rounded shadow transition-all hover:shadow-lg hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-500 relative"
-      >
-
-{/* 修正後のデザイン：帯（リボン）スタイル */}
-{book.userComment && (
-  <div className="absolute top-2 left-0 z-10 w-full overflow-hidden">
-    <div className="bg-red-600 text-white text-[12px] font-bold px-2 py-1 shadow-sm truncate">
-      {book.userComment}
-    </div>
-  </div>
-)}
-        <img src={book.mediumImageUrl} className="w-full rounded" alt={book.title} />
-        <p className="text-xs mt-2 font-bold truncate">{book.title}</p>
-      </div>
+                  <div 
+                    key={book.shelfId} 
+                    onClick={() => setSelectedBook(book)} 
+                    className="bg-white p-3 rounded shadow transition-all hover:shadow-lg hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-500 relative"
+                  >
+                    {book.userComment && (
+                      <div className="absolute top-2 left-0 z-10 w-full overflow-hidden">
+                        <div className="bg-red-600 text-white text-[12px] font-bold px-2 py-1 shadow-sm truncate">
+                          {book.userComment}
+                        </div>
+                      </div>
+                    )}
+                    <img src={book.mediumImageUrl} className="w-full rounded" alt={book.title} />
+                    <p className="text-xs mt-2 font-bold truncate">{book.title}</p>
+                  </div>
                 ))}
                 {shelfBooks.length === 0 && (
                   <p className="col-span-full text-center text-sm text-slate-400 py-10">本棚に本がありません。上のバーから検索して追加してください。</p>
