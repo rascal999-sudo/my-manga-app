@@ -46,7 +46,7 @@ const getApiBaseUrl = () => {
 
   if (typeof window !== 'undefined') {
     if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
-      return 'https://your-manga-app.vercel.app'; 
+      return 'https://my-manga-app-ten.vercel.app'; 
     }
   }
   return '';
