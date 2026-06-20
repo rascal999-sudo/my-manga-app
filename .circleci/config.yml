@@ -10,23 +10,23 @@ jobs:
     steps:
       - checkout
 
-      # Node.jsをバージョン22（最新のLTS）に更新する
+
+# Node.js 22 の有効化からビルドまでを「1つのステップ」で一気に実行する
       - run:
-          name: Install Node.js 22
+          name: Install Node.js 22 & Build App
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-            node -v
-
-      # Node.js依存関係のインストール
-      - run:
-          name: Install Dependencies
-          command: npm install
-
-      # Capacitorのビルド
-      - run:
-          name: Build Capacitor
-          command: npm run cap:build
+            # 1. マシンに内蔵されている nvm を読み込む
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # 2. Node.js 22 をインストールして使用する
+            nvm install 22
+            nvm use 22
+            node -v # ここで v22.x.x と表示されれば大成功です
+            
+            # 3. 同じ環境のまま依存関係のインストールとCapacitorのビルドを行う
+            npm install
+            npm run cap:build
 
       # Androidのネイティブコードをビルド
       - run:
@@ -37,3 +37,15 @@ jobs:
       - store_artifacts:
           path: app/build/outputs/apk/debug/
           destination: apks
+
+          # ─── ここから下を追加 ───
+workflows:
+  manual_pipeline:
+    jobs:
+      # 1. 最初の一時停止ボタン（手動承認）を定義
+      - request_approve:
+          type: approval
+      # 2. 承認されたら、実際のビルドジョブを実行する
+      - build:
+          requires:
+            - request_approve
