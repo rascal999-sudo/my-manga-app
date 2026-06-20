@@ -28,14 +28,16 @@ jobs:
             npm install
             npm run cap:build
 
-      # Androidのネイティブコードをビルド
+# Androidのネイティブコードをビルド（ここを修正します）
       - run:
           name: Build Android App
-          command: ./gradlew assembleDebug
+          command: |
+            cd android          # ★追加：androidフォルダの中に移動する
+            ./gradlew assembleDebug
 
-      # 生成されたapkファイルを保存
+      # 生成されたapkファイルを保存（ここもパスを android/ 内に修正します）
       - store_artifacts:
-          path: app/build/outputs/apk/debug/
+          path: android/app/build/outputs/apk/debug/   # ★修正：android/ を頭に付けます
           destination: apks
 
           # ─── ここから下を追加 ───
