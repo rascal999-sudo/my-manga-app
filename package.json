@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "cap:build": "mv src/app/api src/app/_api_backup && APP_ENV=cap next build && mv src/app/_api_backup src/app/api && rm -f www && ln -s out www && npx cap sync"
+    "test:appium": "wdio run wdio.bstack.conf.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -30,9 +31,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@wdio/cli": "^9.29.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "webdriverio": "^9.29.0"
   }
 }
