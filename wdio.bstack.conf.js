@@ -10,14 +10,16 @@ exports.config = {
     ],
     
 capabilities: [{
+        // 1. 端末のスペックやプロジェクト名は bstack:options の中
         'bstack:options': {
             deviceName: 'Google Pixel 8',
             osVersion: '14.0',
             projectName: 'My Manga App',
             buildName: 'CircleCI Build',
-            sessionName: 'App Launch Test',
-            app: process.env.BROWSERSTACK_APP_URL // ★bstack:options の中（sessionNameの下など）に移動
-        }
+            sessionName: 'App Launch Test'
+        },
+        // 2. アプリのURL（app）だけは、例外として直下に配置する
+        app: process.env.BROWSERSTACK_APP_URL
     }],
     
     framework: 'mocha',
