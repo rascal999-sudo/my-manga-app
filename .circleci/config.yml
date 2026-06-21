@@ -40,14 +40,56 @@ jobs:
           path: android/app/build/outputs/apk/debug/   # ★修正：android/ を頭に付けます
           destination: apks
 
-          # ─── ここから下を追加 ───
+
+  build-and-test:
+    docker:
+      - image: cimg/android:2024.04 # 使用中の一致するイメージ
+    steps:
+      - checkout
+      
+      # (中略) すでに構築済みのCapacitorビルド〜apk作成までのステップ
+      # ※ここでは生成されたapkのパスを `app-release-unsigned.apk` と仮定します。
+
+      - run:
+          name: Upload APK to BrowserStack
+          command: |
+            # 1. 成果物(APK)が確実に存在するか確認
+            APK_PATH="./android/app/build/outputs/apk/release/app-release-unsigned.apk" 
+            
+            # 2. BrowserStack API を使ってAPKをアップロード
+            # レスポンスから app_url (bs://...) を抽出し、環境変数またはファイルに保存
+            RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$APK_PATH")
+            
+            echo "Upload Response: $RESPONSE"
+            
+            # JSONから app_url を抽出 (jqコマンドが利用可能な場合)
+            APP_URL=$(echo $RESPONSE | jq -r '.app_url')
+            echo "Uploaded APP_URL: $APP_URL"
+            
+            # 後続のテスト実行ステップに渡すために一時ファイルに保存
+            echo "export BROWSERSTACK_APP_URL=$APP_URL" >> $BASH_ENV
+
+      - run:
+          name: Trigger BrowserStack Appium Tests
+          command: |
+            # 一時ファイルからAPP_URLを読み込み
+            source $BASH_ENV
+            
+            # 3. テスト自動化スクリプトの実行
+            # 例: Node.js(WebdriverIO/Appium)でテストを走らせる場合
+            # テストコード側で process.env.BROWSERSTACK_APP_URL を参照できるようにします。
+            if [ -n "$BROWSERSTACK_APP_URL" ]; then
+              npm install
+              npm run test:appium
+            else
+              echo "APP_URL の取得に失敗したため、テストをスキップします。"
+              exit 1
+            fi
+
+# ワークフローの定義
 workflows:
-  manual_pipeline:
+  v1:
     jobs:
-      # 1. 最初の一時停止ボタン（手動承認）を定義
-      - request_approve:
-          type: approval
-      # 2. 承認されたら、実際のビルドジョブを実行する
-      - build:
-          requires:
-            - request_approve
+      - build-and-test
