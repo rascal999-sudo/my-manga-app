@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   android: circleci/android@2.4.0
 jobs:
-  build:
+  build-and-test:
     executor:
       name: android/android-machine
       resource-class: large
@@ -10,78 +10,61 @@ jobs:
     steps:
       - checkout
 
-
-# Node.js 22 の有効化からビルドまでを「1つのステップ」で一気に実行する
+      # 1. Node.js 22 の有効化からCapacitorビルドまでを実行
       - run:
           name: Install Node.js 22 & Build App
           command: |
-            # 1. マシンに内蔵されている nvm を読み込む
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            
-            # 2. Node.js 22 をインストールして使用する
             nvm install 22
             nvm use 22
-            node -v # ここで v22.x.x と表示されれば大成功です
-            
-            # 3. 同じ環境のまま依存関係のインストールとCapacitorのビルドを行う
+            node -v
             npm install
             npm run cap:build
 
-# Androidのネイティブコードをビルド（ここを修正します）
+      # 2. Androidのネイティブコードをデバッグモードでビルド
       - run:
           name: Build Android App
           command: |
-            cd android          # ★追加：androidフォルダの中に移動する
+            cd android
             ./gradlew assembleDebug
 
-      # 生成されたapkファイルを保存（ここもパスを android/ 内に修正します）
+      # 3. 生成されたAPKファイルをCircleCIの成果物として保存
       - store_artifacts:
-          path: android/app/build/outputs/apk/debug/   # ★修正：android/ を頭に付けます
+          path: android/app/build/outputs/apk/debug/
           destination: apks
 
-
-  build-and-test:
-    docker:
-      - image: cimg/android:2024.04 # 使用中の一致するイメージ
-    steps:
-      - checkout
-      
-      # (中略) すでに構築済みのCapacitorビルド〜apk作成までのステップ
-      # ※ここでは生成されたapkのパスを `app-release-unsigned.apk` と仮定します。
-
+      # 4. 生成されたデバッグ版APKをBrowserStackにアップロード
       - run:
           name: Upload APK to BrowserStack
           command: |
-            # 1. 成果物(APK)が確実に存在するか確認
-            APK_PATH="./android/app/build/outputs/apk/release/app-release-unsigned.apk" 
+            # 実際に生成されたデバッグ版APKのパスを指定します
+            APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
             
-            # 2. BrowserStack API を使ってAPKをアップロード
-            # レスポンスから app_url (bs://...) を抽出し、環境変数またはファイルに保存
             RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$APK_PATH")
             
             echo "Upload Response: $RESPONSE"
             
-            # JSONから app_url を抽出 (jqコマンドが利用可能な場合)
             APP_URL=$(echo $RESPONSE | jq -r '.app_url')
             echo "Uploaded APP_URL: $APP_URL"
             
-            # 後続のテスト実行ステップに渡すために一時ファイルに保存
             echo "export BROWSERSTACK_APP_URL=$APP_URL" >> $BASH_ENV
 
+      # 5. BrowserStackでテストを実行
       - run:
           name: Trigger BrowserStack Appium Tests
           command: |
-            # 一時ファイルからAPP_URLを読み込み
             source $BASH_ENV
             
-            # 3. テスト自動化スクリプトの実行
-            # 例: Node.js(WebdriverIO/Appium)でテストを走らせる場合
-            # テストコード側で process.env.BROWSERSTACK_APP_URL を参照できるようにします。
             if [ -n "$BROWSERSTACK_APP_URL" ]; then
-              npm install
+              # 必要に応じてNode.js 22の環境をここでも利用可能にする
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              nvm use 22
+              
+              # テストを実行（※テスト用のスクリプト名に合わせて変更してください）
               npm run test:appium
             else
               echo "APP_URL の取得に失敗したため、テストをスキップします。"
