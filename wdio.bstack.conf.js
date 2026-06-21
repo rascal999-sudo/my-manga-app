@@ -10,7 +10,7 @@ exports.config = {
     ],
     
 capabilities: [{
-        // 1. 端末のスペックやプロジェクト名は bstack:options の中
+        // 1. BrowserStack用のオプション
         'bstack:options': {
             deviceName: 'Google Pixel 8',
             osVersion: '14.0',
@@ -18,8 +18,8 @@ capabilities: [{
             buildName: 'CircleCI Build',
             sessionName: 'App Launch Test'
         },
-        // 2. アプリのURL（app）だけは、例外として直下に配置する
-        app: process.env.BROWSERSTACK_APP_URL
+        // 2. 直下に置く場合、W3Cエラーを回避するために 'appium:app' とクォーテーションで囲んで記述します
+        'appium:app': process.env.BROWSERSTACK_APP_URL
     }],
     
     framework: 'mocha',
