@@ -10,14 +10,22 @@ import { KoboBook } from '@/types/rakuten';
 import { KoboSort } from '@/lib/api';
 
 const STORAGE_KEY_LAST_TAG = "my_bookshelf_last_tag";
+const VERSEL_URL = process.env.VERCEL_APPURL;
 
 // 💡 スマホアプリ（Capacitor）かWeb（Vercel）かを判定して、APIのベースURLを返す関数
 const getApiBaseUrl = () => {
+
+// 1. 開発環境での強制シミュレーション判定
+  if (process.env.NEXT_PUBLIC_FORCE_MOBILE_MODE === 'true') {
+    // 判定結果を確認するためのログ（開発中のみ表示）
+    return process.env.NEXT_PUBLIC_VERCEL_APPURL;
+  }
+
   if (typeof window !== 'undefined') {
     // 完全にスタンドアロンのスマホアプリ（capacitor://）やローカルテスト時
     if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
       // ⚠️ ここをご自身のVercel本番環境のドメインに書き換えてください
-      return 'https://your-manga-app.vercel.app'; 
+      return process.env.NEXT_PUBLIC_VERCEL_APPURL; 
     }
   }
   return ''; // VercelのWeb上（自身）で動いている時は相対パスにする
@@ -37,20 +45,6 @@ export default function HomePage() {
   
   // 💡 型を any から KoboBook | null に変更して安全性を強化
   const [selectedBook, setSelectedBook] = useState<KoboBook | null>(null);
-
-const getApiBaseUrl = () => {
-  // 💡 開発モード(npm run dev)の時は、Codespaces上であっても相対パスで自分自身のAPIを叩く
-  if (process.env.NODE_ENV === 'development') {
-    return '';
-  }
-
-  if (typeof window !== 'undefined') {
-    if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
-      return 'https://my-manga-app-ten.vercel.app'; 
-    }
-  }
-  return '';
-};
 
   // 初期の選択タグは空文字で設定
   const [selectedTag, setSelectedTag] = useState<string>('');
@@ -83,6 +77,12 @@ const getApiBaseUrl = () => {
     return Object.keys(tagStats).sort((a, b) => tagStats[b] - tagStats[a]);
   }, [tagStats]);
 
+  // 起動時に開発モードならＵＲＬをコンソールに出しておく
+  if (process.env.NODE_ENV === 'development') {
+      console.log("Current API Base URL:", getApiBaseUrl());
+  }
+
+
   // 起動時（マウント時）に一度だけ初期タグを決定
   useEffect(() => {
     const savedTag = localStorage.getItem(STORAGE_KEY_LAST_TAG);
@@ -112,6 +112,7 @@ const getApiBaseUrl = () => {
       
       // 💡 スマホ時はVercelのURL、Web時は相対パスに自動で切り替える
       const baseUrl = getApiBaseUrl();
+
       const res = await fetch(`${baseUrl}/api/search?${params.toString()}`);
       const json = await res.json();
       
