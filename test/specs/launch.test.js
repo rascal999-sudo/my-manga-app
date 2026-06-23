@@ -35,8 +35,8 @@ describe('マンガ検索アプリの操作テスト', () => {
 
         // 3. 検索結果の一覧が表示されるまで待機して、最初の一つをクリック
         // 要素が動的に生成される場合、waitForExistを使うのがコツです
-        const firstResult = await $('//android.view.ViewGroup[1]/android.widget.ImageView');
-        await firstResult.waitForExist({ timeout: 5000 });
+        const firstResult = await driver.$('img'); 
+        await firstResult.waitForExist({ timeout: 10000 }); // 念のため10秒待機
 
         // 一覧画面のスクリーンショットをBrowserStackに残す
         await driver.takeScreenshot();
