@@ -5,6 +5,7 @@ describe('マンガ検索アプリの操作テスト', () => {
         await driver.pause(8000); 
         // 起動した画面のスクリーンショットをBrowserStackに残す
         await driver.takeScreenshot();
+        await driver.saveScreenshot('./test-results/1_init_screenshot.png');
         
         // 起動成功の判定（ここでは起動してエラー落ちしなければ合格とします）
         console.log('アプリの起動を確認しました！');
@@ -21,7 +22,6 @@ describe('マンガ検索アプリの操作テスト', () => {
         } else {
             throw new Error('WebViewが見つかりませんでした');
         }
-
 
         // 1. 検索入力欄を探して文字を入力 (Accessibility IDやXPathを使用)
         // ※ IDはAppium Inspectorで確認します
@@ -40,14 +40,16 @@ describe('マンガ検索アプリの操作テスト', () => {
 
         // 一覧画面のスクリーンショットをBrowserStackに残す
         await driver.takeScreenshot();
+        await driver.saveScreenshot('./test-results/2_search_screenshot.png');
         // 一覧成功の判定（ここでは起動してエラー落ちしなければ合格とします）
         console.log('検索一覧を確認しました！');
 
         await firstResult.click();
 
-        // 4. 詳細画面が表示されたか確認
+        // 3. 詳細画面が表示されたか確認
         await driver.pause(2000);
         await driver.takeScreenshot();
+        await driver.saveScreenshot('./test-results/3_detail_screenshot.png');
         console.log('詳細画面の表示を確認しました');
     });
 });
