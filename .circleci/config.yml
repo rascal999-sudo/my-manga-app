@@ -52,12 +52,17 @@ jobs:
             
             echo "export BROWSERSTACK_APP_URL=$APP_URL" >> $BASH_ENV
 
+- run:
+    name: Create test results directory
+    command: mkdir -p test-results
+
       # 5. BrowserStackでテストを実行
       - run:
           name: Trigger BrowserStack Appium Tests
           command: |
             source $BASH_ENV
             
+
             if [ -n "$BROWSERSTACK_APP_URL" ]; then
               # 必要に応じてNode.js 22の環境をここでも利用可能にする
               export NVM_DIR="$HOME/.nvm"
