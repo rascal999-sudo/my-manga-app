@@ -52,9 +52,9 @@ jobs:
             
             echo "export BROWSERSTACK_APP_URL=$APP_URL" >> $BASH_ENV
 
-- run:
-    name: Create test results directory
-    command: mkdir -p test-results
+      - run:
+          name: Create test results directory
+          command: mkdir -p test-results
 
       # 5. BrowserStackでテストを実行
       - run:
