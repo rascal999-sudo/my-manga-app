@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { KoboBook } from '@/types/rakuten';
 import { KoboSort } from '@/lib/api';
 
+
 const STORAGE_KEY_LAST_TAG = "my_bookshelf_last_tag";
 const VERSEL_URL = process.env.VERCEL_APPURL;
 
@@ -77,12 +78,6 @@ export default function HomePage() {
     return Object.keys(tagStats).sort((a, b) => tagStats[b] - tagStats[a]);
   }, [tagStats]);
 
-  // 起動時に開発モードならＵＲＬをコンソールに出しておく
-  if (process.env.NODE_ENV === 'development') {
-      console.log("Current API Base URL:", getApiBaseUrl());
-  }
-
-
   // 起動時（マウント時）に一度だけ初期タグを決定
   useEffect(() => {
     const savedTag = localStorage.getItem(STORAGE_KEY_LAST_TAG);
@@ -138,6 +133,8 @@ export default function HomePage() {
           <div className="cursor-pointer" onClick={() => setMode('SHELF')}>
             <h1 className="text-xl font-bold">📚 My Bookshelf</h1>
             <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～ 楽天Koboで電子書籍を検索できます</p>
+      "Current API Base URL:"{getApiBaseUrl()}
+
           </div>
           <Link href="/shelf" className="text-xs font-bold bg-white text-red-600 px-3 py-1 rounded-full hover:bg-slate-100">
             📚本棚設定
