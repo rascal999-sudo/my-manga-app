@@ -84,7 +84,6 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams({ keyword, sort, page: page.toString() });
       
-      // 💡 スマホ時はVercelのURL、Web時は相対パスに自動で切り替える
       const baseUrl = process.env.NEXT_PUBLIC_VERCEL_APPURL;
 
       const res = await fetch(`${baseUrl}/api/search?${params.toString()}`);
