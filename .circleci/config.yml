@@ -41,12 +41,19 @@ jobs:
             # 実際に生成されたデバッグ版APKのパスを指定します
             APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
             
+            # 自動テスト用
             RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$APK_PATH")
             
+            # 手動テスト用
+            curl -u "${BROWSERSTACK_USERNAME}:${BROWSERSTACK_ACCESS_KEY}" \
+              -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+              -F "file=@$APK_PATH" \
+              -F "data={\"custom_id\": \"MyDevelopmentApp\"}"
+
             echo "Upload Response: $RESPONSE"
-            
+
             APP_URL=$(echo $RESPONSE | jq -r '.app_url')
             echo "Uploaded APP_URL: $APP_URL"
             
