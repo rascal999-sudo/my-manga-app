@@ -9,21 +9,7 @@ import Link from 'next/link';
 import { KoboBook } from '@/types/rakuten';
 import { KoboSort } from '@/lib/api';
 
-
 const STORAGE_KEY_LAST_TAG = "my_bookshelf_last_tag";
-const VERSEL_URL = process.env.VERCEL_APPURL;
-
-// 💡 スマホアプリ（Capacitor）かWeb（Vercel）かを判定して、APIのベースURLを返す関数
-const getApiBaseUrl = () => {
-  // 環境変数にVercelのURLが設定されていればそれを優先
-  // Capacitorアプリ内からはこれが絶対URLとして使われます
-  if (process.env.NEXT_PUBLIC_VERCEL_APPURL) {
-    return process.env.NEXT_PUBLIC_VERCEL_APPURL;
-  }
-  
-  // Webブラウザで動いている場合は相対パス（空文字）でOK
-  return '';
-};
 
 export default function HomePage() {
   const { shelfBooks, isLoaded } = useBookshelf();
@@ -99,7 +85,7 @@ export default function HomePage() {
       const params = new URLSearchParams({ keyword, sort, page: page.toString() });
       
       // 💡 スマホ時はVercelのURL、Web時は相対パスに自動で切り替える
-      const baseUrl = getApiBaseUrl();
+      const baseUrl = process.env.NEXT_PUBLIC_VERCEL_APPURL;
 
       const res = await fetch(`${baseUrl}/api/search?${params.toString()}`);
       const json = await res.json();
@@ -127,7 +113,7 @@ export default function HomePage() {
             <h1 className="text-xl font-bold">📚 My Bookshelf</h1>
             <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～ 楽天Koboで電子書籍を検索できます</p>
 <p className="text-[10px] opacity-80">
-  API URL: {getApiBaseUrl() || "(相対パスを使用中)"}
+  API URL: {process.env.NEXT_PUBLIC_VERCEL_APPURL || "(相対パスを使用中)"}
 </p>
 
           </div>
