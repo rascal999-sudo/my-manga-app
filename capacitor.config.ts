@@ -1,3 +1,5 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
 const config: CapacitorConfig = {
   appId: 'com.MyBookchelf.app',
   appName: 'My Bookshelf',
@@ -8,3 +10,5 @@ const config: CapacitorConfig = {
     allowNavigation: ['my-manga-app-ten.vercel.app'] 
   }
 };
+
+export default config;
