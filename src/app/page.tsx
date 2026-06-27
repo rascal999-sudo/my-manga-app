@@ -15,21 +15,14 @@ const VERSEL_URL = process.env.VERCEL_APPURL;
 
 // 💡 スマホアプリ（Capacitor）かWeb（Vercel）かを判定して、APIのベースURLを返す関数
 const getApiBaseUrl = () => {
-
-// 1. 開発環境での強制シミュレーション判定
-  if (process.env.NEXT_PUBLIC_FORCE_MOBILE_MODE === 'true') {
-    // 判定結果を確認するためのログ（開発中のみ表示）
+  // 環境変数にVercelのURLが設定されていればそれを優先
+  // Capacitorアプリ内からはこれが絶対URLとして使われます
+  if (process.env.NEXT_PUBLIC_VERCEL_APPURL) {
     return process.env.NEXT_PUBLIC_VERCEL_APPURL;
   }
-
-  if (typeof window !== 'undefined') {
-    // 完全にスタンドアロンのスマホアプリ（capacitor://）やローカルテスト時
-    if (window.location.origin.startsWith('capacitor://') || window.location.origin.includes('localhost:')) {
-      // ⚠️ ここをご自身のVercel本番環境のドメインに書き換えてください
-      return process.env.NEXT_PUBLIC_VERCEL_APPURL; 
-    }
-  }
-  return ''; // VercelのWeb上（自身）で動いている時は相対パスにする
+  
+  // Webブラウザで動いている場合は相対パス（空文字）でOK
+  return '';
 };
 
 export default function HomePage() {
@@ -133,7 +126,9 @@ export default function HomePage() {
           <div className="cursor-pointer" onClick={() => setMode('SHELF')}>
             <h1 className="text-xl font-bold">📚 My Bookshelf</h1>
             <p className="text-[10px] opacity-80">～埋もれていた名作に出会える～ 楽天Koboで電子書籍を検索できます</p>
-      "Current API Base URL:"{getApiBaseUrl()}
+<p className="text-[10px] opacity-80">
+  API URL: {getApiBaseUrl() || "(相対パスを使用中)"}
+</p>
 
           </div>
           <Link href="/shelf" className="text-xs font-bold bg-white text-red-600 px-3 py-1 rounded-full hover:bg-slate-100">
